@@ -11,7 +11,7 @@ exports.config = {
   // --- Sauce Labs connection ---
   user: process.env.SAUCE_USERNAME,
   key: process.env.SAUCE_ACCESS_KEY,
-  region: 'us', // change to 'eu' if your Sauce account is EU-hosted
+  region: 'eu', // change to 'eu' if your Sauce account is EU-hosted
 
   // --- Which tests to run ---
   specs: [
