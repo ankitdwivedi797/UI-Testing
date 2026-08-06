@@ -1,0 +1,16 @@
+{
+  "name": "ui-testing-genai",
+  "version": "1.0.0",
+  "description": "AI-generated UI test suite for saucedemo.com, executed on the Sauce Labs cloud grid via WebdriverIO",
+  "scripts": {
+    "test:sauce": "wdio run ./wdio.conf.js"
+  },
+  "devDependencies": {
+    "@wdio/cli": "^8.39.0",
+    "@wdio/local-runner": "^8.39.0",
+    "@wdio/mocha-framework": "^8.39.0",
+    "@wdio/spec-reporter": "^8.39.0",
+    "@wdio/sauce-service": "^8.39.0"
+  },
+  "license": "MIT"
+}
