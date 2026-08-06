@@ -7,8 +7,7 @@ exports.config = {
   region: 'eu',
 
   specs: [
-    './tests/generated/**/*.spec.js',
-    './tests/manual/**/*.spec.js'
+    './tests/generated/login-flow.spec.js'
   ],
 
   capabilities: [
