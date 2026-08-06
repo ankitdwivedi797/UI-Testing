@@ -1,81 +1,61 @@
-# ui-testing-genai
+# UI Test Automation with AI-Assisted Authoring
 
-AI-generated UI test suite for [saucedemo.com](https://www.saucedemo.com),
-executed on the Sauce Labs cloud grid, wired to GitHub Actions.
+![Sauce UI Tests](https://github.com/ankitdwivedi797/UI-Testing/actions/workflows/sauce-tests.yml/badge.svg)
+
+An end-to-end automated UI testing pipeline. Test flows are described in
+plain English, converted into executable browser scripts, and run against
+a real Chrome browser on Sauce Labs' cloud grid — triggered automatically
+by GitHub Actions on every push to `main`.
+
+**Stack:** WebdriverIO · Mocha · Sauce Labs · GitHub Actions · Node.js
 
 ## How it works
 
-1. **Intent** — plain-English test descriptions live in `prompts/`.
-2. **Authoring** — those prompts are fed to Sauce AI for Test Authoring,
-   which generates a framework-agnostic script. A human reviews it, then
-   it's committed to `tests/generated/`.
-3. **Manual tests** — edge cases not worth generating from scratch go in
-   `tests/manual/`.
-4. **Execution** — `wdio.conf.js` points WebdriverIO at the Sauce Labs
-   cloud grid (Chrome + Firefox on Windows 11 by default). Nothing runs
-   on the CI runner itself; it just triggers the run.
-5. **CI** — `.github/workflows/sauce-tests.yml` runs the suite on every
-   push/PR to `main`, using `SAUCE_USERNAME` / `SAUCE_ACCESS_KEY` from
-   GitHub Actions repo secrets.
-6. **Diagnosis** — failures show up with full video/log/screenshot detail
-   in your Sauce Labs dashboard; Sauce AI for Insights can be queried
-   there in natural language for root-cause analysis.
+1. **Intent** — test flows are written in plain English in `prompts/`.
+2. **Script** — each prompt maps to a WebdriverIO/Mocha spec in `tests/generated/`.
+3. **CI trigger** — `.github/workflows/sauce-tests.yml` runs on every push/PR to `main`.
+4. **Execution** — tests run on Sauce Labs' cloud grid (real Chrome browser,
+   EU region), not on the CI runner itself.
+5. **Result** — pass/fail reported directly in the GitHub Actions run, with
+   full video, screenshots, and logs available on the Sauce Labs dashboard
+   for any failure.
 
 ## Project structure
 
-```
-ui-testing-genai/
-├── .github/workflows/sauce-tests.yml   # CI: triggers Sauce Labs runs
-├── prompts/                            # natural-language test intents
-│   ├── login-flow.md
-│   └── checkout-flow.md
-├── tests/
-│   ├── generated/                      # AI-authored specs (reviewed)
-│   │   ├── login-flow.spec.js
-│   │   └── checkout-flow.spec.js
-│   └── manual/                         # hand-written edge cases
-│       └── problem-user-visual-bug.spec.js
-├── wdio.conf.js                        # WebdriverIO config -> Sauce Labs
-├── package.json
-├── .env.example
-└── .gitignore
-```
-
 ## Setup
 
-1. **Get Sauce Labs credentials** — sign up at saucelabs.com, grab your
-   username and access key from Account Settings.
-
-2. **Local run**
-   ```bash
+1. Create a free Sauce Labs account and grab your username + access key
+   from Account Settings.
+2. Locally:
+```bash
    cp .env.example .env   # fill in real values
    npm install
-   source .env            # or use a tool like `dotenv-cli`
+   source .env
    npm run test:sauce
-   ```
-
-3. **CI run (GitHub Actions)**
-   In your GitHub repo: Settings → Secrets and variables → Actions, add:
-   - `SAUCE_USERNAME`
-   - `SAUCE_ACCESS_KEY`
-
-   Then push to `main` or open a PR — the workflow runs automatically.
-
-## Adding a new test
-
-1. Write the flow as plain English in a new file under `prompts/`.
-2. Feed it to Sauce AI for Test Authoring to generate the script.
-3. Review the generated script for correctness, then commit it to
-   `tests/generated/`.
-4. Push — CI picks it up automatically.
-
-## Pushing this to git
-
-```bash
-git init
-git add .
-git commit -m "Initial UI test suite for saucedemo.com on Sauce Labs"
-git branch -M main
-git remote add origin <your-empty-github-repo-url>
-git push -u origin main
 ```
+3. In CI: add `SAUCE_USERNAME` and `SAUCE_ACCESS_KEY` as GitHub repo
+   secrets (Settings → Secrets and variables → Actions).
+
+## What I learned building this
+
+Getting a real cloud-testing pipeline working end-to-end surfaced a series
+of real infrastructure issues, not just code bugs:
+
+- **Region mismatch** — Sauce Labs accounts are pinned to a specific data
+  center (US/EU); pointing WebdriverIO at the wrong one causes silent
+  auth failures.
+- **Concurrency limits** — free trial accounts allow only 1 concurrent
+  browser session; running a full browser matrix in parallel gets
+  rejected by the API.
+- **Element timing** — cloud browser sessions need explicit waits for
+  elements to be interactable, not just present in the DOM.
+
+Diagnosing each of these required reading raw WebdriverIO/Sauce Labs logs
+and cross-referencing with Sauce's video replay of the failing session.
+
+## Status
+
+Currently CI runs a verified-stable login test on every push. Additional
+flows (checkout, negative-path login) are written and included in the repo
+under `tests/generated/` and `tests/manual/`, pending selector verification
+against the live site before being added back into the CI run.
